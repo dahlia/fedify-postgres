@@ -98,8 +98,8 @@ export class PostgresMessageQueue implements MessageQueue {
     await this.initialize();
     const { signal } = options;
     const poll = async () => {
-      if (signal?.aborted) return;
-      const query = this.#sql`
+      while (!signal?.aborted) {
+        const query = this.#sql`
         DELETE FROM ${this.#sql(this.#tableName)}
         WHERE id = (
           SELECT id
@@ -110,13 +110,17 @@ export class PostgresMessageQueue implements MessageQueue {
         )
         RETURNING message;
       `.execute();
-      const cancel = query.cancel.bind(query);
-      signal?.addEventListener("abort", cancel);
-      for (const message of await query) {
-        if (signal?.aborted) return;
-        await handler(JSON.parse(message.message));
+        const cancel = query.cancel.bind(query);
+        signal?.addEventListener("abort", cancel);
+        let i = 0;
+        for (const message of await query) {
+          if (signal?.aborted) return;
+          await handler(JSON.parse(message.message));
+          i++;
+        }
+        signal?.removeEventListener("abort", cancel);
+        if (i < 1) break;
       }
-      signal?.removeEventListener("abort", cancel);
     };
     const timeouts = new Set<ReturnType<typeof setTimeout>>();
     const listen = await this.#sql.listen(
