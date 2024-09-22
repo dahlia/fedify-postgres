@@ -4,6 +4,7 @@ import type {
   MessageQueueListenOptions,
 } from "@fedify/fedify";
 import type { Sql } from "postgres";
+import postgres from "postgres";
 
 /**
  * Options for the PostgreSQL message queue.
@@ -94,6 +95,7 @@ export class PostgresMessageQueue implements MessageQueue {
     handler: (message: any) => void | Promise<void>,
     options: MessageQueueListenOptions = {},
   ): Promise<void> {
+    await this.initialize();
     const { signal } = options;
     const poll = async () => {
       if (signal?.aborted) return;
@@ -155,7 +157,8 @@ export class PostgresMessageQueue implements MessageQueue {
    */
   async initialize(): Promise<void> {
     if (this.#initialized) return;
-    await this.#sql`
+    try {
+      await this.#sql`
       CREATE TABLE IF NOT EXISTS ${this.#sql(this.#tableName)} (
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
         message jsonb NOT NULL,
@@ -163,6 +166,14 @@ export class PostgresMessageQueue implements MessageQueue {
         created timestamp with time zone DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    } catch (e) {
+      if (
+        !(e instanceof postgres.PostgresError &&
+          e.constraint_name === "pg_type_typname_nsp_index")
+      ) {
+        throw e;
+      }
+    }
     this.#initialized = true;
   }
 
@@ -173,3 +184,5 @@ export class PostgresMessageQueue implements MessageQueue {
     await this.#sql`DROP TABLE IF EXISTS ${this.#sql(this.#tableName)};`;
   }
 }
+
+// cSpell: ignore typname
