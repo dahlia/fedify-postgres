@@ -68,6 +68,9 @@ Changelog
 
 To be released.
 
+ -  Fixed a bug where some scalar values have failed to be stored in the
+    database.
+
 ### Version 0.2.0
 
 Released on November 3, 2024.

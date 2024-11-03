@@ -85,7 +85,10 @@ export class PostgresMessageQueue implements MessageQueue {
     const delay = options?.delay ?? Temporal.Duration.from({ seconds: 0 });
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (message, delay)
-      VALUES (${message}, ${delay.toString()});
+      VALUES (
+        (${{ message } as unknown as string}::jsonb) -> 'message',
+        ${delay.toString()}
+      );
     `;
     await this.#sql.notify(this.#channelName, delay.toString());
   }
