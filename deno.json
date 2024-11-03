@@ -18,6 +18,7 @@
     "temporal"
   ],
   "exclude": [
+    ".github",
     "npm"
   ],
   "tasks": {
