@@ -66,7 +66,7 @@ Changelog
 
 ### Version 0.2.0
 
-To be released.
+Released on November 3, 2024.
 
  -  Fixed a bug where JSON values are double-quoted in the database.  Since it's
     a breaking change data-wise, the default values of the following options
