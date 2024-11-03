@@ -44,7 +44,7 @@ Deno.test("PostgresMessageQueue", async (t) => {
   await t.step("enqueue() with delay", async () => {
     started = Date.now();
     await mq.enqueue(
-      "Delayed message",
+      { msg: "Delayed message" },
       { delay: Temporal.Duration.from({ seconds: 3 }) },
     );
   });
@@ -52,7 +52,7 @@ Deno.test("PostgresMessageQueue", async (t) => {
   await waitFor(() => messages.length > 1, 15_000);
 
   await t.step("listen() with delay", () => {
-    assertEquals(messages, ["Hello, world!", "Delayed message"]);
+    assertEquals(messages, ["Hello, world!", { msg: "Delayed message" }]);
     assertGreater(Date.now() - started, 3_000);
   });
 

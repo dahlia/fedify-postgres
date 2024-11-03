@@ -6,8 +6,9 @@ import type { Sql } from "postgres";
  */
 export interface PostgresKvStoreOptions {
   /**
-   * The table name to use for the key-value store.  `"fedify_kv"` by default.
-   * @default `"fedify_kv"`
+   * The table name to use for the key-value store.
+   * `"fedify_kv_v2"` by default.
+   * @default `"fedify_kv_v2"`
    */
   tableName?: string;
 
@@ -50,7 +51,7 @@ export class PostgresKvStore implements KvStore {
     options: PostgresKvStoreOptions = {},
   ) {
     this.#sql = sql;
-    this.#tableName = options.tableName ?? "fedify_kv";
+    this.#tableName = options.tableName ?? "fedify_kv_v2";
     this.#initialized = options.initialized ?? false;
   }
 
@@ -69,7 +70,7 @@ export class PostgresKvStore implements KvStore {
       WHERE key = ${key} AND (ttl IS NULL OR created + ttl > CURRENT_TIMESTAMP);
     `;
     if (result.length < 1) return undefined;
-    return JSON.parse(result[0].value) as T;
+    return result[0].value as T;
   }
 
   async set(
@@ -81,7 +82,7 @@ export class PostgresKvStore implements KvStore {
     const ttl = options?.ttl == null ? null : options.ttl.toString();
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (key, value, ttl)
-      VALUES (${key}, ${JSON.stringify(value)}, ${ttl})
+      VALUES (${key}, ${value as string}, ${ttl})
       ON CONFLICT (key)
         DO UPDATE SET value = EXCLUDED.value, ttl = EXCLUDED.ttl;
     `;

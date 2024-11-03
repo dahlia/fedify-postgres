@@ -8,11 +8,11 @@
     "./mq": "./src/mq.ts"
   },
   "imports": {
-    "@deno/dnt": "jsr:@deno/dnt@^0.41.2",
+    "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
     "@fedify/fedify": "jsr:@fedify/fedify@^1.0.0",
     "@std/assert": "jsr:@std/assert@^0.226.0",
     "@std/async": "jsr:@std/async@^1.0.5",
-    "postgres": "npm:postgres@^3.4.4"
+    "postgres": "npm:postgres@^3.4.5"
   },
   "unstable": [
     "temporal"

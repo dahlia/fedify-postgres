@@ -12,8 +12,8 @@ import postgres from "postgres";
 export interface PostgresMessageQueueOptions {
   /**
    * The table name to use for the message queue.
-   * `"fedify_message"` by default.
-   * @default `"fedify_message"`
+   * `"fedify_message_v2"` by default.
+   * @default `"fedify_message_v2"`
    */
   tableName?: string;
 
@@ -68,7 +68,7 @@ export class PostgresMessageQueue implements MessageQueue {
     options: PostgresMessageQueueOptions = {},
   ) {
     this.#sql = sql;
-    this.#tableName = options?.tableName ?? "fedify_message";
+    this.#tableName = options?.tableName ?? "fedify_message_v2";
     this.#channelName = options?.channelName ?? "fedify_channel";
     this.#pollIntervalMs = Temporal.Duration.from(
       options?.pollInterval ?? { seconds: 5 },
@@ -85,7 +85,7 @@ export class PostgresMessageQueue implements MessageQueue {
     const delay = options?.delay ?? Temporal.Duration.from({ seconds: 0 });
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (message, delay)
-      VALUES (${JSON.stringify(message)}, ${delay.toString()});
+      VALUES (${message}, ${delay.toString()});
     `;
     await this.#sql.notify(this.#channelName, delay.toString());
   }
@@ -100,22 +100,22 @@ export class PostgresMessageQueue implements MessageQueue {
     const poll = async () => {
       while (!signal?.aborted) {
         const query = this.#sql`
-        DELETE FROM ${this.#sql(this.#tableName)}
-        WHERE id = (
-          SELECT id
-          FROM ${this.#sql(this.#tableName)}
-          WHERE created + delay < CURRENT_TIMESTAMP
-          ORDER BY created
-          LIMIT 1
-        )
-        RETURNING message;
-      `.execute();
+          DELETE FROM ${this.#sql(this.#tableName)}
+          WHERE id = (
+            SELECT id
+            FROM ${this.#sql(this.#tableName)}
+            WHERE created + delay < CURRENT_TIMESTAMP
+            ORDER BY created
+            LIMIT 1
+          )
+          RETURNING message;
+        `.execute();
         const cancel = query.cancel.bind(query);
         signal?.addEventListener("abort", cancel);
         let i = 0;
         for (const message of await query) {
           if (signal?.aborted) return;
-          await handler(JSON.parse(message.message));
+          await handler(message.message);
           i++;
         }
         signal?.removeEventListener("abort", cancel);

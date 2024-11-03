@@ -22,13 +22,13 @@ Deno.test("PostgresKvStore", async (t) => {
   await t.step("get()", async () => {
     await sql`
       INSERT INTO ${sql(tableName)} (key, value)
-      VALUES (${["foo", "bar"]}, ${'["foobar"]'})
+      VALUES (${["foo", "bar"]}, ${["foobar"]})
     `;
     assertEquals(await store.get(["foo", "bar"]), ["foobar"]);
 
     await sql`
       INSERT INTO ${sql(tableName)} (key, value, ttl)
-      VALUES (${["foo", "bar", "ttl"]}, ${'["foobar"]'}, ${"0 seconds"})
+      VALUES (${["foo", "bar", "ttl"]}, ${["foobar"]}, ${"0 seconds"})
     `;
     await delay(500);
     assertEquals(await store.get(["foo", "bar", "ttl"]), undefined);
@@ -42,7 +42,7 @@ Deno.test("PostgresKvStore", async (t) => {
     `;
     assertEquals(result.length, 1);
     assertEquals(result[0].key, ["foo", "baz"]);
-    assertEquals(result[0].value, '"baz"');
+    assertEquals(result[0].value, "baz");
     assertEquals(result[0].ttl, null);
 
     await store.set(["foo", "qux"], "qux", {
@@ -54,7 +54,7 @@ Deno.test("PostgresKvStore", async (t) => {
     `;
     assertEquals(result2.length, 1);
     assertEquals(result2[0].key, ["foo", "qux"]);
-    assertEquals(result2[0].value, '"qux"');
+    assertEquals(result2[0].value, "qux");
     assertEquals(result2[0].ttl, "1 day");
   });
 

@@ -68,6 +68,14 @@ Changelog
 
 To be released.
 
+ -  Fixed a bug where JSON values are double-quoted in the database.  Since it's
+    a breaking change data-wise, the default values of the following options
+    are also changed:
+
+     -  `PostgresKvStoreOptions.tableName` defaults to `"fedify_kv_v2"`.
+     -  `PostgresMessageQueueOptions.tableName` defaults to
+        `"fedify_message_v2"`.
+
 ### Version 0.1.0
 
 Initial release.  Released on September 26, 2024.
