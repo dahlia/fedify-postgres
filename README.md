@@ -66,7 +66,7 @@ Changelog
 
 ### Version 0.2.1
 
-To be released.
+Released on November 3, 2024.
 
  -  Fixed a bug where some scalar values have failed to be stored in the
     database.
