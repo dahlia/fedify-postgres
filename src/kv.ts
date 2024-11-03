@@ -82,7 +82,11 @@ export class PostgresKvStore implements KvStore {
     const ttl = options?.ttl == null ? null : options.ttl.toString();
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (key, value, ttl)
-      VALUES (${key}, ${value as string}, ${ttl})
+      VALUES (
+        ${key},
+        (${{ value } as unknown as string}::jsonb) -> 'value',
+        ${ttl}
+      )
       ON CONFLICT (key)
         DO UPDATE SET value = EXCLUDED.value, ttl = EXCLUDED.ttl;
     `;

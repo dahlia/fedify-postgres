@@ -56,6 +56,16 @@ Deno.test("PostgresKvStore", async (t) => {
     assertEquals(result2[0].key, ["foo", "qux"]);
     assertEquals(result2[0].value, "qux");
     assertEquals(result2[0].ttl, "1 day");
+
+    await store.set(["foo", "quux"], true);
+    const result3 = await sql`
+      SELECT * FROM ${sql(tableName)}
+      WHERE key = ${["foo", "quux"]}
+    `;
+    assertEquals(result3.length, 1);
+    assertEquals(result3[0].key, ["foo", "quux"]);
+    assertEquals(result3[0].value, true);
+    assertEquals(result3[0].ttl, null);
   });
 
   await t.step("delete()", async () => {
