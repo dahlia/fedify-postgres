@@ -68,6 +68,9 @@ Changelog
 
 To be released.
 
+ -  Use the explicitly typed binding instead of an implicit one to work
+    around the stringification issue.
+
 ### Version 0.2.1
 
 Released on November 3, 2024.

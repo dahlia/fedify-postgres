@@ -1,5 +1,5 @@
 import type { KvKey, KvStore, KvStoreSetOptions } from "@fedify/fedify";
-import type { Sql } from "postgres";
+import type { JSONValue, Sql } from "postgres";
 
 /**
  * Options for the PostgreSQL key-value store.
@@ -84,7 +84,7 @@ export class PostgresKvStore implements KvStore {
       INSERT INTO ${this.#sql(this.#tableName)} (key, value, ttl)
       VALUES (
         ${key},
-        (${{ value } as unknown as string}::jsonb) -> 'value',
+        ${this.#sql.json(value as JSONValue)},
         ${ttl}
       )
       ON CONFLICT (key)

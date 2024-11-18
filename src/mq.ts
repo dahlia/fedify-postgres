@@ -86,7 +86,7 @@ export class PostgresMessageQueue implements MessageQueue {
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (message, delay)
       VALUES (
-        (${{ message } as unknown as string}::jsonb) -> 'message',
+        ${this.#sql.json(message)},
         ${delay.toString()}
       );
     `;
