@@ -68,6 +68,13 @@ Changelog
 
 To be released.
 
+### Version 0.2.2
+
+Released on November 18, 2024.
+
+ -  Fixed a bug where binding parameters have not been properly escaped with
+    some settings of Postgres.js.
+
 ### Version 0.2.1
 
 Released on November 3, 2024.
