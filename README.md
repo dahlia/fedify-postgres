@@ -68,8 +68,8 @@ Changelog
 
 To be released.
 
- -  Use the explicitly typed binding instead of an implicit one to work
-    around the stringification issue.
+ -  Fixed a bug where binding parameters have not been properly escaped with
+    some settings of Postgres.js.
 
 ### Version 0.2.1
 

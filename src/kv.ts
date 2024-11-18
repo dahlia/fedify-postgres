@@ -1,5 +1,6 @@
 import type { KvKey, KvStore, KvStoreSetOptions } from "@fedify/fedify";
-import type { JSONValue, Sql } from "postgres";
+import type { JSONValue, Parameter, Sql } from "postgres";
+import { driverSerializesJson } from "./utils.ts";
 
 /**
  * Options for the PostgreSQL key-value store.
@@ -39,6 +40,7 @@ export class PostgresKvStore implements KvStore {
   readonly #sql: Sql<{}>;
   readonly #tableName: string;
   #initialized: boolean;
+  #driverSerializesJson = false;
 
   /**
    * Creates a new PostgreSQL key-value store.
@@ -84,7 +86,7 @@ export class PostgresKvStore implements KvStore {
       INSERT INTO ${this.#sql(this.#tableName)} (key, value, ttl)
       VALUES (
         ${key},
-        ${this.#sql.json(value as JSONValue)},
+        ${this.#json(value)},
         ${ttl}
       )
       ON CONFLICT (key)
@@ -116,6 +118,7 @@ export class PostgresKvStore implements KvStore {
         ttl interval
       );
     `;
+    this.#driverSerializesJson = await driverSerializesJson(this.#sql);
     this.#initialized = true;
   }
 
@@ -125,5 +128,10 @@ export class PostgresKvStore implements KvStore {
    */
   async drop(): Promise<void> {
     await this.#sql`DROP TABLE IF EXISTS ${this.#sql(this.#tableName)};`;
+  }
+
+  #json(value: unknown): Parameter {
+    if (this.#driverSerializesJson) return this.#sql.json(value as JSONValue);
+    return this.#sql.json(JSON.stringify(value));
   }
 }

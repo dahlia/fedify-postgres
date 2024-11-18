@@ -3,8 +3,9 @@ import type {
   MessageQueueEnqueueOptions,
   MessageQueueListenOptions,
 } from "@fedify/fedify";
-import type { Sql } from "postgres";
+import type { JSONValue, Parameter, Sql } from "postgres";
 import postgres from "postgres";
+import { driverSerializesJson } from "./utils.ts";
 
 /**
  * Options for the PostgreSQL message queue.
@@ -61,6 +62,7 @@ export class PostgresMessageQueue implements MessageQueue {
   readonly #channelName: string;
   readonly #pollIntervalMs: number;
   #initialized: boolean;
+  #driverSerializesJson = false;
 
   constructor(
     // deno-lint-ignore ban-types
@@ -86,7 +88,7 @@ export class PostgresMessageQueue implements MessageQueue {
     await this.#sql`
       INSERT INTO ${this.#sql(this.#tableName)} (message, delay)
       VALUES (
-        ${this.#sql.json(message)},
+        ${this.#json(message)},
         ${delay.toString()}
       );
     `;
@@ -181,6 +183,7 @@ export class PostgresMessageQueue implements MessageQueue {
         throw e;
       }
     }
+    this.#driverSerializesJson = await driverSerializesJson(this.#sql);
     this.#initialized = true;
   }
 
@@ -189,6 +192,11 @@ export class PostgresMessageQueue implements MessageQueue {
    */
   async drop(): Promise<void> {
     await this.#sql`DROP TABLE IF EXISTS ${this.#sql(this.#tableName)};`;
+  }
+
+  #json(value: unknown): Parameter {
+    if (this.#driverSerializesJson) return this.#sql.json(value as JSONValue);
+    return this.#sql.json(JSON.stringify(value));
   }
 }
 
