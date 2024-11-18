@@ -64,6 +64,10 @@ bun add @fedify/postgres
 Changelog
 ---------
 
+### Version 0.2.2
+
+To be released.
+
 ### Version 0.2.1
 
 Released on November 3, 2024.
